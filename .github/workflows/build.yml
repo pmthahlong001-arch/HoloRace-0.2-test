@@ -1,0 +1,60 @@
+name: Build HoloRace
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build with Maven
+        run: mvn clean package -B --file pom.xml
+
+      - name: Rename JAR
+        run: |
+          VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+          mv target/HoloRace-${VERSION}.jar target/HoloRace-${VERSION}-RELEASE.jar
+          echo "JAR_NAME=HoloRace-${VERSION}-RELEASE.jar" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: HoloRace-${{ env.VERSION }}
+          path: target/${{ env.JAR_NAME }}
+          retention-days: 30
+
+      - name: Create Release (on push to main/master)
+        if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master')
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ env.VERSION }}-build.${{ github.run_number }}
+          name: "HoloRace v${{ env.VERSION }} (Build #${{ github.run_number }})"
+          body: |
+            ## HoloRace v${{ env.VERSION }}
+            **Commit:** `${{ github.sha }}`
+            **Branch:** `${{ github.ref_name }}`
+
+            ### 8 Tộc
+            - Tộc Người, Tộc Cá, Tộc Quỷ, Tộc Khủng Lồ *(v0.1)*
+            - 🐺 Tộc Thú, 🧚 Tộc Tiên, 🐉 Tộc Rồng, 👻 Tộc Ma *(v0.2)*
+          files: target/${{ env.JAR_NAME }}
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
