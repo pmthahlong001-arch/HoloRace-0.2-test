@@ -23,7 +23,6 @@ public class HoloRaceCommand implements CommandExecutor {
                 return true;
             }
 
-            // Thực hiện reload cấu hình và data
             plugin.reloadConfig();
             plugin.getRaceManager().loadRaces();
             plugin.getPlayerDataManager().loadData();
@@ -33,10 +32,9 @@ public class HoloRaceCommand implements CommandExecutor {
             return true;
         }
 
-        // Lệnh mở GUI chủng tộc cho người chơi
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            // Gọi hàm mở menu từ GUIManager của bạn
+            // Gọi hàm mở menu. Hãy chắc chắn tên hàm trùng với hàm mở menu trong file GUIManager.java của bạn
             plugin.getGUIManager().openMenu(player); 
         } else {
             sender.sendMessage("§cKhung lệnh này chỉ có thể thực hiện bởi người chơi trong game!");
