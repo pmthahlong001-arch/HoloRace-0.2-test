@@ -5,6 +5,7 @@ import online.racesmp.holorace.models.PlayerData;
 import online.racesmp.holorace.models.Race;
 import online.racesmp.holorace.utils.MessageUtil;
 import org.bukkit.attribute.Attribute;
+import org.bukkit.configuration.ConfigurationSection; // ĐÃ FIX LỖI THIẾU IMPORT DÒNG 48
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -102,8 +103,12 @@ public class RaceManager {
         if (race == null) return;
 
         pdm.setRace(player.getUniqueId(), race.getId());
-        player.sendMessage(MessageUtil.format(plugin, "auto-random-race",
-                "%race%", race.getDisplayName()));
+        
+        // ĐÃ FIX LỖI DÒNG 131, 132, 133 (Sử dụng String.replace thay vì truyền mảng String sai cấu trúc hàm format)
+        String rawMessage = MessageUtil.format(plugin, "auto-random-race");
+        if (rawMessage != null) {
+            player.sendMessage(rawMessage.replace("%race%", race.getDisplayName()));
+        }
     }
 
     // Apply passive effects khi login/assign race
@@ -127,10 +132,17 @@ public class RaceManager {
     }
 
     public void applyEffectList(Player player, List<java.util.Map<?, ?>> effects) {
+        if (effects == null) return;
         for (java.util.Map<?, ?> eff : effects) {
+            if (eff == null) continue;
             String effectName = eff.getOrDefault("effect", "").toString();
-            int amplifier = Integer.parseInt(eff.getOrDefault("amplifier", "0").toString());
-            int duration = Integer.parseInt(eff.getOrDefault("duration", "-1").toString());
+            int amplifier = 0;
+            int duration = -1;
+            
+            try {
+                amplifier = Integer.parseInt(eff.getOrDefault("amplifier", "0").toString());
+                duration = Integer.parseInt(eff.getOrDefault("duration", "-1").toString());
+            } catch (NumberFormatException ignored) {}
 
             PotionEffectType type = PotionEffectType.getByName(effectName);
             if (type == null) continue;
