@@ -1,0 +1,70 @@
+# =============================================
+#   Race: Tộc Ma - Dev For xVioCent_
+# =============================================
+
+id: ghost
+name: "Tộc Ma"
+display-name: "&8Tộc &7M&8a"
+description:
+  - "&7Tồn tại giữa ranh giới sống chết,"
+  - "&7điều khiển bóng tối và nỗi sợ."
+  - "&e► &8Ám Hồn: &725% bị đánh → Wither+Fear"
+  - "&e► &7Tàng Hình: &7Shift+RClick"
+  - "  &7→ 6s ẩn, backstab x2.5"
+  - "&e► &5Hút Hồn: &7Sneak+Q"
+  - "  &7→ AOE drain HP, hồi 50%"
+
+icon:
+  material: SOUL_LANTERN
+
+skills:
+  # Passive: nhìn đêm + lifesteal
+  - type: PASSIVE
+    trigger: ALWAYS
+    effects:
+      - effect: NIGHT_VISION
+        amplifier: 0
+        duration: -1
+
+  # Lifesteal mỗi cú đánh
+  - type: GHOST_LIFESTEAL
+    trigger: ON_HIT
+    heal-per-hit: 2.0      # 1 tim mỗi đòn
+
+  # Khi bị đánh: 25% ám hồn kẻ tấn công
+  - type: GHOST_HAUNT
+    trigger: ON_DAMAGED
+    chance: 25
+    cooldown: 10
+    effects-on-attacker:
+      - effect: WITHER
+        amplifier: 1
+        duration: 40       # 2s
+      - effect: BLINDNESS
+        amplifier: 0
+        duration: 20       # 1s
+
+  # Shift+RClick: tàng hình + backstab
+  - type: GHOST_VEIL
+    trigger: SHIFT_RIGHT_CLICK
+    cooldown: 22
+    duration: 120          # 6s
+    speed-amplifier: 2
+    backstab-multiplier: 2.5
+    backstab-window: 40    # ticks sau thoát tàng hình
+
+  # Sneak+Q: vùng hút hồn
+  - type: GHOST_SIPHON
+    trigger: SNEAK_DROP
+    cooldown: 25
+    radius: 5
+    duration: 80           # 4s
+    damage-per-second: 3.0
+    lifesteal-ratio: 0.5   # hồi 50% damage
+    effects-in-zone:
+      - effect: WITHER
+        amplifier: 0
+        duration: 40
+      - effect: SLOWNESS
+        amplifier: 1
+        duration: 40

@@ -1,0 +1,58 @@
+# =============================================
+#   Race: Tộc Thú - Dev For xVioCent_
+# =============================================
+
+id: beast
+name: "Tộc Thú"
+display-name: "&6Tộc &eTh&6ú"
+description:
+  - "&7Bản năng hoang dã — tốc độ và"
+  - "&7sức mạnh vượt trội mọi loài."
+  - "&e► &6Bản Năng: &720% khi bị đánh"
+  - "  &7→ Rage 5s (Str III + Speed III)"
+  - "&e► &cVọt Săn Mồi: &7Shift+RClick"
+  - "  &7→ Lao vào mục tiêu, chậm 3s"
+  - "&e► &4Liên Đòn: &7Tự động sau 3 hit"
+  - "  &7→ Đòn 4: x2 damage + knockup"
+
+icon:
+  material: WOLF_SPAWN_EGG
+
+skills:
+  # Passive tốc độ vĩnh viễn
+  - type: PASSIVE
+    trigger: ALWAYS
+    effects:
+      - effect: SPEED
+        amplifier: 0   # Speed 1
+        duration: -1
+
+  # Khi bị đánh: 20% kích hoạt Rage
+  - type: BEAST_RAGE
+    trigger: ON_DAMAGED
+    chance: 20
+    cooldown: 15
+    effects:
+      - effect: INCREASE_DAMAGE
+        amplifier: 2   # Strength 3
+        duration: 100  # 5s
+      - effect: SPEED
+        amplifier: 2   # Speed 3
+        duration: 100
+
+  # Shift+RClick: Vọt Săn Mồi
+  - type: BEAST_LEAP
+    trigger: SHIFT_RIGHT_CLICK
+    cooldown: 12
+    range: 10
+    damage: 8.0
+    slow-amplifier: 2
+    slow-duration: 60  # 3s
+
+  # Combo 3 hit → đòn 4 x2 damage
+  - type: BEAST_COMBO
+    trigger: COMBO_HIT
+    combo-count: 3
+    combo-window: 80   # 4s
+    damage-multiplier: 2.0
+    knockup-velocity: 1.2

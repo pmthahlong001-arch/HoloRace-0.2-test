@@ -1,0 +1,18 @@
+# =============================================
+#   HoloRace Weight Config - Dev For xVioCent_
+# =============================================
+# Tộc không có trong file này = chỉ admin assign được
+# Tổng không cần = 100, plugin tự tính %
+
+weights:
+  # ── Tộc cũ ──
+  human: 35      # Tộc Người - phổ biến
+  fish: 25       # Tộc Cá
+  demon: 15      # Tộc Quỷ
+  giant: 8       # Tộc Khủng Lồ - hiếm
+
+  # ── Tộc mới ──
+  beast: 20      # Tộc Thú
+  celestial: 12  # Tộc Tiên - hiếm
+  dragon: 8      # Tộc Rồng - hiếm
+  ghost: 12      # Tộc Ma

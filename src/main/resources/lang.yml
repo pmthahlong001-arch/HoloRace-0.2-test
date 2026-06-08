@@ -1,0 +1,77 @@
+# =============================================
+#   HoloRace Lang Config - Dev For xVioCent_
+# =============================================
+# %prefix% = [HoloRace] prefix từ config.yml
+
+messages:
+  # General
+  only-player: "%prefix% &cLệnh này chỉ dùng được trong game!"
+  no-permission: "%prefix% &cBạn không có quyền dùng lệnh này!"
+  player-not-found: "%prefix% &cKhông tìm thấy người chơi!"
+  invalid-number: "%prefix% &cSố lượng không hợp lệ!"
+
+  # Check
+  no-race: "%prefix% &7Bạn chưa có tộc nào!"
+  check-info: |
+    %prefix% &7━━━━━━━━━━━━━━━━
+    %prefix% &bTộc hiện tại: &f%race%
+    %prefix% &bLịch sử: &f%history%
+    %prefix% &bLượt random còn: &f%remaining%
+    %prefix% &7━━━━━━━━━━━━━━━━
+
+  # Give
+  usage-give: "%prefix% &cDùng: /holorace give <tên> <số lượng>"
+  give-success: "%prefix% &aĐã cho &f%player% &ax%amount% &aitem Random Race!"
+  received-item: "%prefix% &aBạn nhận được &fx%amount% &aitem &bRandom Race&a!"
+
+  # Reset
+  usage-resetrace: "%prefix% &cDùng: /holorace resetrace <tên>"
+  reset-success: "%prefix% &aĐã reset tộc của &f%player%&a!"
+  your-race-reset: "%prefix% &cTộc của bạn đã bị reset!"
+
+  # Random item
+  random-cooldown: "%prefix% &cBạn cần chờ &e%time% &cnữa!"
+  random-success: "%prefix% &aRandom thành công! Tộc mới: &b%race%"
+  random-no-races: "%prefix% &cKhông có tộc nào để random!"
+
+  # Auto random join
+  auto-random-race: |
+    %prefix% &aChào mừng bạn! Tộc của bạn: &b%race%
+    %prefix% &7Dùng &f/holorace check &7để xem thông tin!
+
+  # Help
+  help-header: "&7&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━&r &bHolo&dRace &7Help &7&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+  help-check: "&b/holorace check &8- &7Xem race hiện tại, lịch sử, số lượt"
+  help-give: "&b/holorace give &d<tên> <số> &8- &7Cho item Random Race"
+  help-resetrace: "&b/holorace resetrace &d<tên> &8- &7Reset race người chơi"
+  help-chonrace: "&b/holorace chonrace &8- &7Mở GUI chọn race thủ công"
+  help-footer: "&7&m━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+
+  # Skills
+  skill-adrenaline: "&c⚡ Adrenaline kích hoạt!"
+  skill-lifesteal: "&4🩸 Hút &c%amount% &4máu!"
+
+  # ── Cooldown chung ──
+  skill-cooldown: "%prefix% &cCooldown: &e%time%"
+  skill-no-target: "%prefix% &cKhông có mục tiêu trong tầm!"
+
+  # ── Tộc Thú ──
+  skill-beast-rage: "&6⚡ Bản Năng Hoang Dã kích hoạt!"
+  skill-beast-leap: "&6🐾 Vọt Săn Mồi!"
+  skill-beast-combo: "&4💥 Điên Cuồng Liên Đòn!"
+
+  # ── Tộc Tiên ──
+  skill-celestial-shield: "&b✦ Hào Quang Thần Thánh kích hoạt!"
+  skill-celestial-step: "&b🌀 Bước Thiên Đình!"
+  skill-celestial-curse: "&d🌙 Lời Nguyền Tiên Nữ!"
+
+  # ── Tộc Rồng ──
+  skill-dragon-flamebody: "&c🔥 Thân Thể Lửa phản công!"
+  skill-dragon-breath: "&4🐉 Hơi Thở Rồng!"
+  skill-dragon-wingslam: "&4💥 Cú Đập Cánh!"
+
+  # ── Tộc Ma ──
+  skill-ghost-haunt: "&8👻 Ám Hồn!"
+  skill-ghost-veil: "&8🌫 Màn Sương Bóng Tối!"
+  skill-ghost-backstab: "&5💀 Backstab! Sát thương x2.5!"
+  skill-ghost-siphon: "&5🌀 Hút Hồn kích hoạt!"

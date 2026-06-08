@@ -1,0 +1,31 @@
+# =============================================
+#   Race: Tộc Khủng Lồ - Dev For xVioCent_
+# =============================================
+
+id: giant
+name: "Tộc Khủng Lồ"
+display-name: "&6Tộc &eKhủng Lồ"
+description:
+  - "&7Scale: &f+25% &7kích thước vĩnh viễn"
+  - "&7Slowness I &7vĩnh viễn"
+  - "&7Strength II &7vĩnh viễn"
+
+icon:
+  material: IRON_CHESTPLATE
+
+skills:
+  # Scale nhân vật
+  - type: SCALE
+    trigger: ALWAYS
+    value: 1.25        # +25% = 1.25
+
+  # Passive effects
+  - type: PASSIVE
+    trigger: ALWAYS
+    effects:
+      - effect: SLOWNESS
+        amplifier: 0   # Slowness 1 = amplifier 0
+        duration: -1
+      - effect: INCREASE_DAMAGE
+        amplifier: 1   # Strength 2 = amplifier 1
+        duration: -1

@@ -1,0 +1,30 @@
+# =============================================
+#   Race: Tộc Người - Dev For xVioCent_
+# =============================================
+
+id: human
+name: "Tộc Người"
+display-name: "&fTộc &eNgười"
+description:
+  - "&7Khi máu dưới &c50%&7, nhận"
+  - "&7Strength III &8(&c5s&8) + Speed III &8(&a10s&8)"
+  - "&7Cooldown: &e2 phút"
+
+# Icon trong GUI menu
+icon:
+  material: PLAYER_HEAD
+  texture: "eyJ0ZXh0dXJlcyI6eyJTS0lOIjp7InVybCI6Imh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvYmQ2OWUwNmU1ZGFkZmQ4NGU1ZjNkMWMyMTBjNzQwM2VmZWViNThiZjBkMTJkZTE1NDlhZjFjNjU3NjYxIn19fQ=="
+
+# Skills của race này
+skills:
+  - type: ADRENALINE
+    trigger: LOW_HEALTH
+    hp-threshold: 50
+    effects:
+      - effect: INCREASE_DAMAGE
+        amplifier: 2   # Strength 3 = amplifier 2
+        duration: 100  # 5s = 100 ticks
+      - effect: SPEED
+        amplifier: 2   # Speed 3 = amplifier 2
+        duration: 200  # 10s = 200 ticks
+    cooldown: 120      # 2 phút = 120 giây

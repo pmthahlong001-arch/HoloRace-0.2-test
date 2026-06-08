@@ -1,0 +1,37 @@
+# =============================================
+#   Race: Tộc Cá - Dev For xVioCent_
+# =============================================
+
+id: fish
+name: "Tộc Cá"
+display-name: "&bTộc &3Cá"
+description:
+  - "&7Trên cạn: &fResistance I &7vĩnh viễn"
+  - "&7Dưới nước: &bDolphin's Grace II"
+  - "&7+ &fStrength II + Speed II &7vĩnh viễn"
+
+icon:
+  material: COD
+
+skills:
+  # Passive trên cạn
+  - type: PASSIVE
+    trigger: ON_LAND
+    effects:
+      - effect: DAMAGE_RESISTANCE
+        amplifier: 0   # Resistance 1 = amplifier 0
+        duration: -1   # -1 = vĩnh viễn
+
+  # Passive dưới nước
+  - type: PASSIVE
+    trigger: IN_WATER
+    effects:
+      - effect: DOLPHINS_GRACE
+        amplifier: 1   # Dolphin's Grace 2 = amplifier 1
+        duration: -1
+      - effect: INCREASE_DAMAGE
+        amplifier: 1   # Strength 2 = amplifier 1
+        duration: -1
+      - effect: SPEED
+        amplifier: 1   # Speed 2 = amplifier 1
+        duration: -1

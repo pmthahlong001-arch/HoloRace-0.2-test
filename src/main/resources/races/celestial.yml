@@ -1,0 +1,62 @@
+# =============================================
+#   Race: Tộc Tiên - Dev For xVioCent_
+# =============================================
+
+id: celestial
+name: "Tộc Tiên"
+display-name: "&bTộc &3Ti&bên"
+description:
+  - "&7Sinh ra từ ánh sáng thiên giới,"
+  - "&7mang phép thuật và sự bất tử."
+  - "&e► &bHào Quang: &7HP<20% → Shield 8♥"
+  - "&e► &eBước Thiên Đình: &7Shift+RClick"
+  - "  &7→ Dịch chuyển 15 block, hồi đồng minh"
+  - "&e► &dLời Nguyền: &7Sneak+Q"
+  - "  &7→ Weaken + Slow + Blind kẻ thù"
+
+icon:
+  material: FEATHER
+
+skills:
+  # Passive: không nhận fall damage
+  - type: PASSIVE
+    trigger: ALWAYS
+    effects:
+      - effect: SLOW_FALLING
+        amplifier: 0
+        duration: -1
+      - effect: JUMP_BOOST
+        amplifier: 1
+        duration: -1
+
+  # Passive: HP < 20% → tự tạo shield
+  - type: CELESTIAL_SHIELD
+    trigger: HP_BELOW_20
+    cooldown: 45
+    absorption-hearts: 8
+    shield-duration: 200   # 10s
+
+  # Shift+RClick: teleport + heal aura
+  - type: CELESTIAL_STEP
+    trigger: SHIFT_RIGHT_CLICK
+    cooldown: 10
+    max-range: 15
+    aura-radius: 4
+    aura-duration: 60      # 3s
+    aura-heal: 6.0         # 3 tim
+
+  # Sneak+Q: nguyền kẻ thù
+  - type: CELESTIAL_CURSE
+    trigger: SNEAK_DROP
+    cooldown: 20
+    range: 8
+    effects-on-target:
+      - effect: WEAKNESS
+        amplifier: 1
+        duration: 120      # 6s
+      - effect: SLOWNESS
+        amplifier: 1
+        duration: 120
+      - effect: BLINDNESS
+        amplifier: 0
+        duration: 20       # 1s

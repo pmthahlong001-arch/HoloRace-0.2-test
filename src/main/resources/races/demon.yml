@@ -1,0 +1,30 @@
+# =============================================
+#   Race: Tộc Quỷ - Dev For xVioCent_
+# =============================================
+
+id: demon
+name: "Tộc Quỷ"
+display-name: "&4Tộc &cQuỷ"
+description:
+  - "&7Crit hit: &c30% &7tỉ lệ hút &c30% &7máu đối phương"
+  - "&7(Đối phương không mất máu)"
+  - "&7Ban đêm: &fSpeed II &7vĩnh viễn"
+
+icon:
+  material: WITHER_SKELETON_SKULL
+
+skills:
+  # Passive ban đêm
+  - type: PASSIVE
+    trigger: NIGHT
+    effects:
+      - effect: SPEED
+        amplifier: 1   # Speed 2 = amplifier 1
+        duration: -1
+
+  # Lifesteal khi crit
+  - type: LIFESTEAL
+    trigger: CRIT_HIT
+    chance: 30         # 30% khi crit
+    steal-percent: 30  # Hút 30% máu đối phương
+    damage-target: false  # Đối phương không mất máu

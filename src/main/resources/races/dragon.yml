@@ -1,0 +1,58 @@
+# =============================================
+#   Race: Tộc Rồng - Dev For xVioCent_
+# =============================================
+
+id: dragon
+name: "Tộc Rồng"
+display-name: "&4Tộc &cRồ&4ng"
+description:
+  - "&7Hậu duệ Rồng Cổ Đại — máu lửa"
+  - "&7chảy qua từng huyết quản."
+  - "&e► &cThân Lửa: &730% bị đánh đốt lại"
+  - "&e► &6Hơi Thở: &7Shift+RClick"
+  - "  &7→ Luồng lửa 5 block, 3 giây"
+  - "&e► &4Cú Đập Cánh: &7Sneak+Q"
+  - "  &7→ AOE 4 block, knockup + lửa"
+
+icon:
+  material: BLAZE_POWDER
+
+skills:
+  # Passive: miễn dịch lửa + giảm damage
+  - type: PASSIVE
+    trigger: ALWAYS
+    effects:
+      - effect: FIRE_RESISTANCE
+        amplifier: 0
+        duration: -1
+      - effect: DAMAGE_RESISTANCE
+        amplifier: 0
+        duration: -1
+
+  # Khi bị đánh: 30% đốt cháy kẻ tấn công
+  - type: DRAGON_FLAME_BODY
+    trigger: ON_MELEE_HIT_RECEIVED
+    chance: 30
+    cooldown: 5
+    ignite-ticks: 80       # 4s
+
+  # Shift+RClick: phun lửa
+  - type: DRAGON_BREATH
+    trigger: SHIFT_RIGHT_CLICK
+    cooldown: 18
+    duration: 60           # 3s luồng lửa
+    range: 5
+    damage-per-interval: 4.0
+    tick-interval: 10
+    ignite-ticks: 100      # 5s
+    slow-amplifier: 1
+    slow-duration: 60
+
+  # Sneak+Q: cú đập cánh AOE
+  - type: DRAGON_WING_SLAM
+    trigger: SNEAK_DROP
+    cooldown: 14
+    radius: 4
+    damage: 6.0
+    knockup-velocity: 1.5
+    ignite-ticks: 60

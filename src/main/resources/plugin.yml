@@ -1,0 +1,30 @@
+name: HoloRace
+version: 0.2
+main: online.racesmp.holorace.HoloRace
+api-version: '1.21'
+folia-supported: true
+description: Race plugin - Dev For xVioCent_
+authors: [xVioCent_]
+
+commands:
+  holorace:
+    description: HoloRace main command
+    usage: /holorace <check|give|resetrace|chonrace|help>
+    permission: holorace.use
+
+permissions:
+  holorace.use:
+    description: Use /holorace check and help
+    default: true
+  holorace.give:
+    description: Give random race item
+    default: op
+  holorace.resetrace:
+    description: Reset player race
+    default: op
+  holorace.chonrace:
+    description: Open race selection GUI
+    default: op
+  holorace.op:
+    description: Bypass cooldown on random race item
+    default: op
