@@ -98,7 +98,8 @@ public class RaceSkillListener implements Listener {
             for (var eff : skill.getEffectList()) {
                 String effectName = eff.getOrDefault("effect", "").toString();
                 PotionEffectType type = PotionEffectType.getByName(effectName);
-                if (type != null) player.removePotionEffect(type);
+                // Đã sửa đổi ở đây: Sử dụng type.getKey() để tương thích với Registry API mới của Paper/Folia
+                if (type != null) player.removePotionEffect(type.getKey());
             }
         }
     }
