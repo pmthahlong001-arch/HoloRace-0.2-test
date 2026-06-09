@@ -24,6 +24,7 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 public class NewRaceSkillListener implements Listener {
@@ -48,7 +49,7 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  TICK TASK — Celestial Shield HP check + Ghost lifesteal aura
+    //  TICK TASK — Celestial Shield HP check
     // ─────────────────────────────────────────────────────────
     private void startPassiveTick() {
         plugin.getServer().getGlobalRegionScheduler().runAtFixedRate(plugin, task -> {
@@ -85,8 +86,7 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  DAMAGE RECEIVED — Tộc Thú Rage, Tộc Ma Haunt/Lifesteal,
-    //                    Tộc Rồng Flame Body
+    //  DAMAGE EVENTS — Rage, Haunt, Flame Body, Lifesteal, Combo
     // ─────────────────────────────────────────────────────────
     @EventHandler(priority = EventPriority.NORMAL)
     public void onDamageReceived(EntityDamageByEntityEvent event) {
@@ -109,7 +109,7 @@ public class NewRaceSkillListener implements Listener {
             }
         }
 
-        // --- Tộc Ma Lifesteal + Tộc Thú Combo khi TẤN CÔNG ---
+        // --- Lifesteal + Combo + Backstab khi tấn công ---
         if (event.getDamager() instanceof Player attacker) {
             String raceId = getRaceId(attacker);
             if (raceId == null) return;
@@ -134,6 +134,7 @@ public class NewRaceSkillListener implements Listener {
                             backstabWindowUntil.remove(attacker.getUniqueId());
                             attacker.sendMessage(MessageUtil.get(plugin, "skill-ghost-backstab"));
                             attacker.playSound(attacker.getLocation(), Sound.ENTITY_CREEPER_DEATH, 1f, 1.5f);
+                            attacker.spawnParticle(Particle.CRIT, attacker.getLocation().add(0,1,0), 15, 0.2, 0.2, 0.2, 0.1);
                             break;
                         }
                     }
@@ -142,9 +143,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC THÚ — Rage passive
-    // ─────────────────────────────────────────────────────────
     private void handleBeastRage(Player player, Race race) {
         var cm = plugin.getCooldownManager();
         if (cm.isOnCooldown(player.getUniqueId(), "beast_rage")) return;
@@ -164,9 +162,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC THÚ — Combo tracker
-    // ─────────────────────────────────────────────────────────
     private void handleBeastCombo(Player attacker, Race race, EntityDamageByEntityEvent event) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("BEAST_COMBO")) continue;
@@ -184,11 +179,9 @@ public class NewRaceSkillListener implements Listener {
 
                 int needed = skill.getInt("combo-count", 3);
                 if (count >= needed) {
-                    // Kích hoạt combo
                     double mult = skill.getDouble("damage-multiplier", 2.0);
                     event.setDamage(event.getDamage() * mult);
 
-                    // Knockup target
                     if (event.getEntity() instanceof LivingEntity target) {
                         double kv = skill.getDouble("knockup-velocity", 1.2);
                         Vector up = new Vector(0, kv, 0);
@@ -206,9 +199,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC MA — Haunt (Sửa lỗi Capture ? hoàn toàn)
-    // ─────────────────────────────────────────────────────────
     private void handleGhostHaunt(Player victim, Race race, Entity attacker) {
         if (!(attacker instanceof LivingEntity living)) return;
         var cm = plugin.getCooldownManager();
@@ -247,9 +237,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC MA — Lifesteal mỗi cú đánh
-    // ─────────────────────────────────────────────────────────
     private void handleGhostLifesteal(Player attacker, Race race, EntityDamageByEntityEvent event) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("GHOST_LIFESTEAL")) continue;
@@ -261,9 +248,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC RỒNG — Flame Body
-    // ─────────────────────────────────────────────────────────
     private void handleDragonFlameBody(Player victim, Race race, Entity attacker) {
         if (!(attacker instanceof LivingEntity living)) return;
         var cm = plugin.getCooldownManager();
@@ -286,12 +270,11 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  SHIFT + RIGHT_CLICK — Tộc Thú Leap, Tiên Step, Rồng Breath, Ma Veil
+    //  SHIFT + RIGHT_CLICK — Active Skills
     // ─────────────────────────────────────────────────────────
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
-        if (event.getAction() != Action.RIGHT_CLICK_AIR &&
-                event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
+        if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (!event.getPlayer().isSneaking()) return;
 
         Player player = event.getPlayer();
@@ -310,9 +293,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC THÚ — Vọt Săn Mồi
-    // ─────────────────────────────────────────────────────────
     private void useBeastLeap(Player player, Race race, PlayerInteractEvent event) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("BEAST_LEAP")) continue;
@@ -331,13 +311,10 @@ public class NewRaceSkillListener implements Listener {
                 return;
             }
 
-            Vector dir = target.getLocation().toVector()
-                    .subtract(player.getLocation().toVector()).normalize().multiply(2.5);
+            Vector dir = target.getLocation().toVector().subtract(player.getLocation().toVector()).normalize().multiply(2.5);
             dir.setY(0.5);
 
-            plugin.getServer().getRegionScheduler().run(plugin, player.getLocation(), t -> {
-                player.setVelocity(dir);
-            });
+            plugin.getServer().getRegionScheduler().run(plugin, player.getLocation(), t -> player.setVelocity(dir));
 
             plugin.getServer().getRegionScheduler().runDelayed(plugin, player.getLocation(), t -> {
                 if (player.getLocation().distanceSquared(target.getLocation()) < 9) {
@@ -359,9 +336,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC TIÊN — Bước Thiên Đình
-    // ─────────────────────────────────────────────────────────
     private void useCelestialStep(Player player, Race race, PlayerInteractEvent event) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("CELESTIAL_STEP")) continue;
@@ -413,9 +387,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC RỒNG — Hơi Thở Rồng
-    // ─────────────────────────────────────────────────────────
     private void useDragonBreath(Player player, Race race, PlayerInteractEvent event) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("DRAGON_BREATH")) continue;
@@ -475,9 +446,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC MA — Tàng Hình
-    // ─────────────────────────────────────────────────────────
     private void useGhostVeil(Player player, Race race, PlayerInteractEvent event) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("GHOST_VEIL")) continue;
@@ -533,7 +501,7 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  SNEAK + DROP (Q) — Tiên Curse, Rồng Wing Slam, Ma Siphon
+    //  SNEAK + DROP (Q) — Passive Triggers
     // ─────────────────────────────────────────────────────────
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
@@ -561,9 +529,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC TIÊN — Lời Nguyền (Sửa lỗi Capture ? hoàn toàn)
-    // ─────────────────────────────────────────────────────────
     private void useCelestialCurse(Player player, Race race) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("CELESTIAL_CURSE")) continue;
@@ -610,9 +575,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC RỒNG — Cú Đập Cánh AOE
-    // ─────────────────────────────────────────────────────────
     private void useDragonWingSlam(Player player, Race race) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("DRAGON_WING_SLAM")) continue;
@@ -636,8 +598,7 @@ public class NewRaceSkillListener implements Listener {
                         (random.nextDouble() - 0.5) * 0.4,
                         knockup,
                         (random.nextDouble() - 0.5) * 0.4);
-                plugin.getServer().getRegionScheduler().run(plugin, target.getLocation(), t ->
-                        target.setVelocity(up));
+                plugin.getServer().getRegionScheduler().run(plugin, target.getLocation(), t -> target.setVelocity(up));
             }
 
             long cd = skill.getInt("cooldown", 14);
@@ -650,9 +611,6 @@ public class NewRaceSkillListener implements Listener {
         }
     }
 
-    // ─────────────────────────────────────────────────────────
-    //  TỘC MA — Vùng Hút Hồn (Hoàn chỉnh logic bị thiếu)
-    // ─────────────────────────────────────────────────────────
     private void useGhostSiphon(Player player, Race race) {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("GHOST_SIPHON")) continue;
@@ -664,90 +622,77 @@ public class NewRaceSkillListener implements Listener {
             }
 
             double radius = skill.getDouble("radius", 5.0);
-            double damage = skill.getDouble("damage-per-tick", 2.0);
-            int duration = skill.getInt("duration", 100); // 100 ticks = 5s
+            double damage = skill.getDouble("damage-per-hit", 3.0);
+            double healFactor = skill.getDouble("heal-factor", 0.5);
 
-            player.sendMessage(MessageUtil.get(plugin, "skill-ghost-siphon"));
-            player.playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 1f, 0.7f);
+            double totalHeal = 0;
+            for (Entity e : player.getNearbyEntities(radius, radius, radius)) {
+                if (!(e instanceof LivingEntity target) || target.equals(player)) continue;
+                target.damage(damage, player);
+                target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, 40, 1));
+                totalHeal += (damage * healFactor);
+                target.getWorld().spawnParticle(Particle.SOUL, target.getLocation().add(0,1,0), 5, 0.2, 0.2, 0.2, 0.02);
+            }
 
-            // Chạy hiệu ứng hút máu diện rộng (AOE) theo chu kỳ tick
-            new BukkitRunnable() {
-                int elapsed = 0;
-                @Override
-                public void run() {
-                    if (elapsed >= duration || !player.isOnline()) {
-                        cancel();
-                        return;
-                    }
+            if (totalHeal > 0) {
+                double finalHeal = totalHeal;
+                plugin.getServer().getRegionScheduler().run(plugin, player.getLocation(), t -> {
+                    double nextHp = Math.min(player.getMaxHealth(), player.getHealth() + finalHeal);
+                    player.setHealth(nextHp);
+                });
+                player.playSound(player.getLocation(), Sound.ENTITY_EVOKER_FANGS_ATTACK, 1f, 0.7f);
+                player.spawnParticle(Particle.SOUL_FIRE_FLAME, player.getLocation().add(0,1,0), 20, radius/2, 0.3, radius/2, 0.05);
+            }
 
-                    double totalHeal = 0;
-                    Location center = player.getLocation();
-
-                    // Quét các thực thể xung quanh
-                    for (Entity e : player.getNearbyEntities(radius, radius, radius)) {
-                        if (!(e instanceof LivingEntity target) || target.equals(player)) continue;
-
-                        // Gây sát thương diện rộng
-                        target.damage(damage, player);
-                        totalHeal += damage * 0.5; // Hút 50% lượng máu gây ra
-
-                        // Hiệu ứng particle kết nối từ mục tiêu đến kẻ hút hồn
-                        Location tLoc = target.getLocation().add(0, 1, 0);
-                        player.spawnParticle(Particle.WITCH, tLoc, 3, 0.1, 0.1, 0.1, 0.01);
-                    }
-
-                    // Hồi máu lại cho người chơi tộc Ma
-                    if (totalHeal > 0) {
-                        double newHp = Math.min(player.getMaxHealth(), player.getHealth() + totalHeal);
-                        player.setHealth(newHp);
-                    }
-
-                    // Hiệu ứng vòng tròn ma mị dưới chân người chơi
-                    player.spawnParticle(Particle.SMOKE, center, 10, radius / 2, 0.2, radius / 2, 0.02);
-
-                    elapsed += 20; // Chạy mỗi giây (20 ticks)
-                }
-            }.runTaskTimer(plugin, 0L, 20L);
-
-            long cd = skill.getInt("cooldown", 25);
+            long cd = skill.getInt("cooldown", 16);
             cm.setCooldown(player.getUniqueId(), "ghost_siphon", cd);
+            player.sendMessage(MessageUtil.get(plugin, "skill-ghost-siphon"));
             break;
         }
     }
 
     // ─────────────────────────────────────────────────────────
-    //  SUPPORT UTILS
+    //  SUPPORT UTILS & REFLECTION PLAYERDATA CHECK
     // ─────────────────────────────────────────────────────────
     private String getRaceId(Player player) {
-        var data = plugin.getPlayerDataManager().getPlayerData(player.getUniqueId());
-        return data != null ? data.getRaceId() : null;
+        var pdm = plugin.getPlayerDataManager();
+        if (pdm == null) return null;
+        try {
+            Method getMethod = null;
+            for (Method m : pdm.getClass().getDeclaredMethods()) {
+                if (m.getParameterCount() == 1 && m.getParameterTypes()[0].equals(UUID.class) 
+                    && m.getReturnType().equals(PlayerData.class)) {
+                    getMethod = m;
+                    break;
+                }
+            }
+            if (getMethod != null) {
+                getMethod.setAccessible(true);
+                PlayerData data = (PlayerData) getMethod.invoke(pdm, player.getUniqueId());
+                return data != null ? data.getRaceId() : null;
+            }
+        } catch (Exception ignored) {}
+        return null;
     }
 
     private LivingEntity findNearestEnemy(Player player, double range) {
         LivingEntity nearest = null;
-        double nearestDistSq = range * range;
+        double bestDist = range * range;
         for (Entity e : player.getNearbyEntities(range, range, range)) {
-            if (e instanceof LivingEntity living && !e.equals(player)) {
-                double distSq = player.getLocation().distanceSquared(living.getLocation());
-                if (distSq < nearestDistSq) {
-                    nearestDistSq = distSq;
-                    nearest = living;
-                }
+            if (!(e instanceof LivingEntity living) || living.equals(player)) continue;
+            double d = player.getLocation().distanceSquared(living.getLocation());
+            if (d < bestDist) {
+                bestDist = d;
+                nearest = living;
             }
         }
         return nearest;
     }
 
     private Location getTargetLocation(Player player, double maxRange) {
-        Location eye = player.getEyeLocation();
-        Vector dir = eye.getDirection().normalize();
-        Location target = eye.clone().add(dir.multiply(maxRange));
-        // Đưa về mặt đất nếu block là không khí để tránh kẹt tường
-        while (target.getY() > 0 && target.getBlock().getType().isAir() 
-                && target.clone().subtract(0,1,0).getBlock().getType().isAir() 
-                && target.getY() > player.getLocation().getY() - 3) {
-            target.subtract(0, 1, 0);
-        }
-        return target.getBlock().getLocation().add(0.5, 0, 0.5);
+        Location target = player.getTargetBlockOnLine(null, (int) maxRange).getLocation();
+        target.setYaw(player.getLocation().getYaw());
+        target.setPitch(player.getLocation().getPitch());
+        return target;
     }
 }
