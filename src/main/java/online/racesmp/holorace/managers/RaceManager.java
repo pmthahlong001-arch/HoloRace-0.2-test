@@ -5,7 +5,7 @@ import online.racesmp.holorace.models.PlayerData;
 import online.racesmp.holorace.models.Race;
 import online.racesmp.holorace.utils.MessageUtil;
 import org.bukkit.attribute.Attribute;
-import org.bukkit.configuration.ConfigurationSection; // ĐÃ FIX LỖI THIẾU IMPORT DÒNG 48
+import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
 import org.bukkit.potion.PotionEffect;
@@ -104,10 +104,10 @@ public class RaceManager {
 
         pdm.setRace(player.getUniqueId(), race.getId());
         
-        // ĐÃ FIX LỖI DÒNG 131, 132, 133 (Sử dụng String.replace thay vì truyền mảng String sai cấu trúc hàm format)
-        String rawMessage = MessageUtil.format(plugin, "auto-random-race");
+        // Đã fix: Ép kiểu Object thu được từ format về chuỗi String để loại bỏ hoàn toàn lỗi capture ? của Maven
+        Object rawMessage = MessageUtil.format(plugin, "auto-random-race");
         if (rawMessage != null) {
-            player.sendMessage(rawMessage.replace("%race%", race.getDisplayName()));
+            player.sendMessage(rawMessage.toString().replace("%race%", race.getDisplayName()));
         }
     }
 
