@@ -34,8 +34,18 @@ public class HoloRaceCommand implements CommandExecutor {
 
         if (sender instanceof Player) {
             Player player = (Player) sender;
-            // Gọi hàm mở menu. Hãy chắc chắn tên hàm trùng với hàm mở menu trong file GUIManager.java của bạn
-            plugin.getGUIManager().openMenu(player); 
+            
+            // =====================================================================
+            // SỬA LỖI DÒNG 38: HÀM MỞ MENU
+            // Bạn hãy ĐỂ LẠI 1 TRONG 3 DÒNG dưới đây sao cho đúng với file GUIManager.java của bạn nhé!
+            // =====================================================================
+            
+            plugin.getGUIManager().openMenu(player); // <-- Giữ dòng này nếu trong GUIManager ghi: public void openMenu(Player player)
+            
+            // plugin.getGUIManager().openGUI(player);  // <-- Bỏ dấu // ở đầu dòng này nếu trong GUIManager ghi: public void openGUI(Player player)
+            
+            // plugin.getGUIManager().open(player);     // <-- Bỏ dấu // ở đầu dòng này nếu trong GUIManager ghi: public void open(Player player)
+            
         } else {
             sender.sendMessage("§cKhung lệnh này chỉ có thể thực hiện bởi người chơi trong game!");
         }
