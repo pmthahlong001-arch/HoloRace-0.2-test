@@ -4,6 +4,7 @@ import org.bukkit.configuration.ConfigurationSection;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class Race {
 
@@ -51,8 +52,13 @@ public class Race {
 
         public SkillConfig(java.util.Map<?, ?> map) {
             this.raw = map;
-            this.type = map.getOrDefault("type", "PASSIVE").toString().toUpperCase();
-            this.trigger = map.getOrDefault("trigger", "ALWAYS").toString().toUpperCase();
+            
+            // ĐÃ FIX: Không dùng getOrDefault trên Map<?, ?> để tránh lỗi Wildcard Capture
+            Object rawType = map.get("type");
+            Object rawTrigger = map.get("trigger");
+            
+            this.type = (rawType != null ? rawType.toString() : "PASSIVE").toUpperCase();
+            this.trigger = (rawTrigger != null ? rawTrigger.toString() : "ALWAYS").toUpperCase();
         }
 
         public String getType() { return type; }
