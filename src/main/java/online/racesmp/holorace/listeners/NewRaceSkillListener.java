@@ -24,7 +24,6 @@ import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.util.Vector;
 
-import java.lang.reflect.Method;
 import java.util.*;
 
 public class NewRaceSkillListener implements Listener {
@@ -652,47 +651,42 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  SUPPORT UTILS & REFLECTION PLAYERDATA CHECK
+    //  SUPPORT UTILS & PLAYERDATA CHECK
     // ─────────────────────────────────────────────────────────
+    
+    // ĐÃ FIX: Hàm lấy Race ID chuẩn xác từ PlayerDataManager tránh lỗi Cannot find symbol
     private String getRaceId(Player player) {
-        var pdm = plugin.getPlayerDataManager();
-        if (pdm == null) return null;
-        try {
-            Method getMethod = null;
-            for (Method m : pdm.getClass().getDeclaredMethods()) {
-                if (m.getParameterCount() == 1 && m.getParameterTypes()[0].equals(UUID.class) 
-                    && m.getReturnType().equals(PlayerData.class)) {
-                    getMethod = m;
-                    break;
-                }
-            }
-            if (getMethod != null) {
-                getMethod.setAccessible(true);
-                PlayerData data = (PlayerData) getMethod.invoke(pdm, player.getUniqueId());
-                return data != null ? data.getRaceId() : null;
-            }
-        } catch (Exception ignored) {}
-        return null;
+        if (plugin.getPlayerDataManager() == null) return null;
+        PlayerData data = plugin.getPlayerDataManager().getData(player.getUniqueId());
+        if (data == null) return null;
+        
+        // Gọi hàm chuẩn từ PlayerData để lấy chủng tộc hiện tại
+        Race race = data.getCurrentRace();
+        return race != null ? race.getId() : null;
+    }
+
+    // ĐÃ FIX: Bổ sung hàm lấy target location bằng API chuẩn Spigot
+    private Location getTargetLocation(Player player, double maxRange) {
+        org.bukkit.block.Block targetBlock = player.getTargetBlockExact((int) maxRange);
+        if (targetBlock != null) {
+            return targetBlock.getLocation().add(0, 1, 0); // Trả về vị trí phía trên block nhìn vào
+        }
+        // Nếu không nhìn vào block nào, lấy vị trí xa nhất theo hướng mắt nhìn
+        return player.getEyeLocation().add(player.getLocation().getDirection().normalize().multiply(maxRange));
     }
 
     private LivingEntity findNearestEnemy(Player player, double range) {
         LivingEntity nearest = null;
-        double bestDist = range * range;
+        double nearestDistSq = range * range;
         for (Entity e : player.getNearbyEntities(range, range, range)) {
-            if (!(e instanceof LivingEntity living) || living.equals(player)) continue;
-            double d = player.getLocation().distanceSquared(living.getLocation());
-            if (d < bestDist) {
-                bestDist = d;
-                nearest = living;
+            if (e instanceof LivingEntity living && !e.equals(player)) {
+                double distSq = player.getLocation().distanceSquared(living.getLocation());
+                if (distSq < nearestDistSq) {
+                    nearestDistSq = distSq;
+                    nearest = living;
+                }
             }
         }
         return nearest;
-    }
-
-    private Location getTargetLocation(Player player, double maxRange) {
-        Location target = player.getTargetBlockOnLine(null, (int) maxRange).getLocation();
-        target.setYaw(player.getLocation().getYaw());
-        target.setPitch(player.getLocation().getPitch());
-        return target;
     }
 }
