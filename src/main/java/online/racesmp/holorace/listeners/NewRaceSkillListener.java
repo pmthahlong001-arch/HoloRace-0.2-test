@@ -207,7 +207,7 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  TỘC MA — Haunt
+    //  TỘC MA — Haunt (Sửa lỗi Capture ? hoàn toàn)
     // ─────────────────────────────────────────────────────────
     private void handleGhostHaunt(Player victim, Race race, Entity attacker) {
         if (!(attacker instanceof LivingEntity living)) return;
@@ -219,10 +219,22 @@ public class NewRaceSkillListener implements Listener {
             int chance = skill.getInt("chance", 25);
             if (random.nextInt(100) >= chance) return;
 
-            for (var eff : skill.getEffectList()) {
-                String name = eff.getOrDefault("effect", "").toString();
-                int amp = Integer.parseInt(eff.getOrDefault("amplifier", "0").toString());
-                int dur = Integer.parseInt(eff.getOrDefault("duration", "20").toString());
+            for (Object effObj : skill.getEffectList()) {
+                if (!(effObj instanceof Map<?, ?> eff)) continue;
+                
+                Object rawEffect = eff.get("effect");
+                Object rawAmplifier = eff.get("amplifier");
+                Object rawDuration = eff.get("duration");
+
+                String name = rawEffect != null ? rawEffect.toString() : "";
+                int amp = 0;
+                int dur = 20;
+
+                try {
+                    if (rawAmplifier != null) amp = Integer.parseInt(rawAmplifier.toString());
+                    if (rawDuration != null) dur = Integer.parseInt(rawDuration.toString());
+                } catch (NumberFormatException ignored) {}
+
                 PotionEffectType type = PotionEffectType.getByName(name);
                 if (type != null) living.addPotionEffect(new PotionEffect(type, dur, amp, true, false, false));
             }
@@ -283,7 +295,6 @@ public class NewRaceSkillListener implements Listener {
         if (!event.getPlayer().isSneaking()) return;
 
         Player player = event.getPlayer();
-        // Bỏ qua nếu đang cầm Random Race item
         if (plugin.getPlayerDataManager() == null) return;
 
         String raceId = getRaceId(player);
@@ -314,14 +325,12 @@ public class NewRaceSkillListener implements Listener {
             event.setCancelled(true);
 
             double range = skill.getDouble("range", 10);
-            // Tìm entity gần nhất trong tầm
             LivingEntity target = findNearestEnemy(player, range);
             if (target == null) {
                 player.sendMessage(MessageUtil.get(plugin, "skill-no-target"));
                 return;
             }
 
-            // Tính vector hướng tới target
             Vector dir = target.getLocation().toVector()
                     .subtract(player.getLocation().toVector()).normalize().multiply(2.5);
             dir.setY(0.5);
@@ -330,7 +339,6 @@ public class NewRaceSkillListener implements Listener {
                 player.setVelocity(dir);
             });
 
-            // Sau 10 ticks check hit
             plugin.getServer().getRegionScheduler().runDelayed(plugin, player.getLocation(), t -> {
                 if (player.getLocation().distanceSquared(target.getLocation()) < 9) {
                     double dmg = skill.getDouble("damage", 8.0);
@@ -366,7 +374,6 @@ public class NewRaceSkillListener implements Listener {
             event.setCancelled(true);
 
             double maxRange = skill.getDouble("max-range", 15);
-            // Teleport về phía nhìn tối đa maxRange block
             Location target = getTargetLocation(player, maxRange);
             Location from = player.getLocation().clone();
 
@@ -377,7 +384,6 @@ public class NewRaceSkillListener implements Listener {
                 player.spawnParticle(Particle.PORTAL, target.clone().add(0,1,0), 30, 0.3, 0.5, 0.3, 0.1);
             });
 
-            // Heal aura
             double auraRadius = skill.getDouble("aura-radius", 4);
             double auraHeal = skill.getDouble("aura-heal", 6.0);
             int auraDur = skill.getInt("aura-duration", 60);
@@ -388,12 +394,9 @@ public class NewRaceSkillListener implements Listener {
                     if (ticks >= auraDur) { cancel(); return; }
                     for (Entity e : target.getWorld().getNearbyEntities(target, auraRadius, auraRadius, auraRadius)) {
                         if (!(e instanceof Player ally) || ally.equals(player)) continue;
-                        String allyRace = getRaceId(ally);
-                        // Heal đồng minh (cùng server, không phải kẻ thù)
                         double newHp = Math.min(ally.getMaxHealth(), ally.getHealth() + (auraHeal / (auraDur / 20.0)));
                         ally.setHealth(newHp);
                     }
-                    // Heal bản thân một lần
                     if (ticks == 0) {
                         double selfHp = Math.min(player.getMaxHealth(), player.getHealth() + auraHeal);
                         player.setHealth(selfHp);
@@ -445,20 +448,17 @@ public class NewRaceSkillListener implements Listener {
                         cancel();
                         return;
                     }
-                    // Spawn flame particles theo hướng nhìn
                     Location eye = player.getEyeLocation();
                     Vector dir = player.getEyeLocation().getDirection().normalize();
                     for (double d = 1; d <= range; d += 0.5) {
                         Location loc = eye.clone().add(dir.clone().multiply(d));
                         loc.getWorld().spawnParticle(Particle.FLAME, loc, 3, 0.15, 0.15, 0.15, 0.01);
                     }
-                    // Damage entities
                     for (Entity e : player.getNearbyEntities(range + 1, range + 1, range + 1)) {
                         if (!(e instanceof LivingEntity target) || target.equals(player)) continue;
                         Location tLoc = target.getLocation();
-                        // Check nếu trong cone hướng nhìn
                         Vector toTarget = tLoc.toVector().subtract(eye.toVector()).normalize();
-                        if (toTarget.dot(dir) < 0.6) continue; // ~50° cone
+                        if (toTarget.dot(dir) < 0.6) continue;
                         if (eye.distance(tLoc) > range + 1) continue;
 
                         target.damage(dmgPerInterval, player);
@@ -505,11 +505,9 @@ public class NewRaceSkillListener implements Listener {
             player.playSound(player.getLocation(), Sound.ENTITY_PHANTOM_FLAP, 1f, 1.5f);
             player.spawnParticle(Particle.ASH, player.getLocation().add(0,1,0), 20, 0.3, 0.5, 0.3, 0.02);
 
-            // Tự động thoát sau duration
             plugin.getServer().getRegionScheduler().runDelayed(plugin, player.getLocation(), t -> {
                 if (veilActiveUntil.containsKey(player.getUniqueId())) {
                     veilActiveUntil.remove(player.getUniqueId());
-                    // Mở backstab window
                     long bsExpire = System.currentTimeMillis() + (backstabWindow * 50L);
                     backstabWindowUntil.put(player.getUniqueId(), bsExpire);
                     player.removePotionEffect(PotionEffectType.INVISIBILITY);
@@ -522,7 +520,6 @@ public class NewRaceSkillListener implements Listener {
     private void cancelVeil(Player player) {
         veilActiveUntil.remove(player.getUniqueId());
         player.removePotionEffect(PotionEffectType.INVISIBILITY);
-        // Mở backstab window
         Race ghostRace = plugin.getRaceManager().getRace("ghost");
         if (ghostRace != null) {
             for (Race.SkillConfig s : ghostRace.getSkills()) {
@@ -565,7 +562,7 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  TỘC TIÊN — Lời Nguyền
+    //  TỘC TIÊN — Lời Nguyền (Sửa lỗi Capture ? hoàn toàn)
     // ─────────────────────────────────────────────────────────
     private void useCelestialCurse(Player player, Race race) {
         for (Race.SkillConfig skill : race.getSkills()) {
@@ -584,10 +581,22 @@ public class NewRaceSkillListener implements Listener {
                 return;
             }
 
-            for (var eff : skill.getEffectList()) {
-                String name = eff.getOrDefault("effect", "").toString();
-                int amp = Integer.parseInt(eff.getOrDefault("amplifier", "0").toString());
-                int dur = Integer.parseInt(eff.getOrDefault("duration", "20").toString());
+            for (Object effObj : skill.getEffectList()) {
+                if (!(effObj instanceof Map<?, ?> eff)) continue;
+                
+                Object rawEffect = eff.get("effect");
+                Object rawAmplifier = eff.get("amplifier");
+                Object rawDuration = eff.get("duration");
+
+                String name = rawEffect != null ? rawEffect.toString() : "";
+                int amp = 0;
+                int dur = 20;
+
+                try {
+                    if (rawAmplifier != null) amp = Integer.parseInt(rawAmplifier.toString());
+                    if (rawDuration != null) dur = Integer.parseInt(rawDuration.toString());
+                } catch (NumberFormatException ignored) {}
+
                 PotionEffectType type = PotionEffectType.getByName(name);
                 if (type != null) target.addPotionEffect(new PotionEffect(type, dur, amp, true, false, false));
             }
@@ -642,7 +651,7 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  TỘC MA — Vùng Hút Hồn
+    //  TỘC MA — Vùng Hút Hồn (Hoàn chỉnh logic bị thiếu)
     // ─────────────────────────────────────────────────────────
     private void useGhostSiphon(Player player, Race race) {
         for (Race.SkillConfig skill : race.getSkills()) {
@@ -654,41 +663,49 @@ public class NewRaceSkillListener implements Listener {
                 return;
             }
 
-            double radius = skill.getDouble("radius", 5);
-            double dps = skill.getDouble("damage-per-second", 3.0);
-            double lifeRatio = skill.getDouble("lifesteal-ratio", 0.5);
-            int duration = skill.getInt("duration", 80);
-            Location center = player.getLocation().clone();
+            double radius = skill.getDouble("radius", 5.0);
+            double damage = skill.getDouble("damage-per-tick", 2.0);
+            int duration = skill.getInt("duration", 100); // 100 ticks = 5s
 
             player.sendMessage(MessageUtil.get(plugin, "skill-ghost-siphon"));
-            player.playSound(center, Sound.ENTITY_WITHER_SHOOT, 0.8f, 1.5f);
+            player.playSound(player.getLocation(), Sound.ENTITY_WITHER_AMBIENT, 1f, 0.7f);
 
+            // Chạy hiệu ứng hút máu diện rộng (AOE) theo chu kỳ tick
             new BukkitRunnable() {
                 int elapsed = 0;
-                @Override public void run() {
-                    if (elapsed >= duration || !player.isOnline()) { cancel(); return; }
-                    double totalSiphoned = 0;
-                    for (Entity e : center.getWorld().getNearbyEntities(center, radius, radius, radius)) {
-                        if (!(e instanceof LivingEntity target) || target.equals(player)) continue;
-                        target.damage(dps, player);
-                        totalSiphoned += dps;
-                        for (var eff : skill.getEffectList()) {
-                            String name = eff.getOrDefault("effect", "").toString();
-                            int amp = Integer.parseInt(eff.getOrDefault("amplifier", "0").toString());
-                            int dur = Integer.parseInt(eff.getOrDefault("duration", "40").toString());
-                            PotionEffectType type = PotionEffectType.getByName(name);
-                            if (type != null) target.addPotionEffect(new PotionEffect(type, dur, amp, true, false, false));
-                        }
+                @Override
+                public void run() {
+                    if (elapsed >= duration || !player.isOnline()) {
+                        cancel();
+                        return;
                     }
-                    // Hồi máu
-                    if (totalSiphoned > 0) {
-                        double heal = totalSiphoned * lifeRatio;
-                        double newHp = Math.min(player.getMaxHealth(), player.getHealth() + heal);
+
+                    double totalHeal = 0;
+                    Location center = player.getLocation();
+
+                    // Quét các thực thể xung quanh
+                    for (Entity e : player.getNearbyEntities(radius, radius, radius)) {
+                        if (!(e instanceof LivingEntity target) || target.equals(player)) continue;
+
+                        // Gây sát thương diện rộng
+                        target.damage(damage, player);
+                        totalHeal += damage * 0.5; // Hút 50% lượng máu gây ra
+
+                        // Hiệu ứng particle kết nối từ mục tiêu đến kẻ hút hồn
+                        Location tLoc = target.getLocation().add(0, 1, 0);
+                        player.spawnParticle(Particle.WITCH, tLoc, 3, 0.1, 0.1, 0.1, 0.01);
+                    }
+
+                    // Hồi máu lại cho người chơi tộc Ma
+                    if (totalHeal > 0) {
+                        double newHp = Math.min(player.getMaxHealth(), player.getHealth() + totalHeal);
                         player.setHealth(newHp);
                     }
-                    // Particles
-                    center.getWorld().spawnParticle(Particle.SOUL, center.clone().add(0,0.5,0), 15, radius/2, 0.3, radius/2, 0.02);
-                    elapsed += 20;
+
+                    // Hiệu ứng vòng tròn ma mị dưới chân người chơi
+                    player.spawnParticle(Particle.SMOKE, center, 10, radius / 2, 0.2, radius / 2, 0.02);
+
+                    elapsed += 20; // Chạy mỗi giây (20 ticks)
                 }
             }.runTaskTimer(plugin, 0L, 20L);
 
@@ -699,47 +716,38 @@ public class NewRaceSkillListener implements Listener {
     }
 
     // ─────────────────────────────────────────────────────────
-    //  HELPERS
+    //  SUPPORT UTILS
     // ─────────────────────────────────────────────────────────
     private String getRaceId(Player player) {
-        PlayerData data = plugin.getPlayerDataManager().getData(player.getUniqueId());
-        if (data == null) return null;
-        return data.getCurrentRace();
+        var data = plugin.getPlayerDataManager().getPlayerData(player.getUniqueId());
+        return data != null ? data.getRaceId() : null;
     }
 
     private LivingEntity findNearestEnemy(Player player, double range) {
         LivingEntity nearest = null;
-        double minDist = range * range;
+        double nearestDistSq = range * range;
         for (Entity e : player.getNearbyEntities(range, range, range)) {
-            if (!(e instanceof LivingEntity living) || e.equals(player)) continue;
-            double dist = player.getLocation().distanceSquared(living.getLocation());
-            if (dist < minDist) { minDist = dist; nearest = living; }
+            if (e instanceof LivingEntity living && !e.equals(player)) {
+                double distSq = player.getLocation().distanceSquared(living.getLocation());
+                if (distSq < nearestDistSq) {
+                    nearestDistSq = distSq;
+                    nearest = living;
+                }
+            }
         }
         return nearest;
     }
 
     private Location getTargetLocation(Player player, double maxRange) {
-        var result = player.rayTraceBlocks(maxRange);
-        if (result != null && result.getHitBlock() != null) {
-            Location hit = result.getHitBlock().getLocation();
-            // Đặt player lên trên block đó
-            hit.setY(hit.getY() + 1);
-            hit.setYaw(player.getLocation().getYaw());
-            hit.setPitch(player.getLocation().getPitch());
-            return hit;
+        Location eye = player.getEyeLocation();
+        Vector dir = eye.getDirection().normalize();
+        Location target = eye.clone().add(dir.multiply(maxRange));
+        // Đưa về mặt đất nếu block là không khí để tránh kẹt tường
+        while (target.getY() > 0 && target.getBlock().getType().isAir() 
+                && target.clone().subtract(0,1,0).getBlock().getType().isAir() 
+                && target.getY() > player.getLocation().getY() - 3) {
+            target.subtract(0, 1, 0);
         }
-        // Nếu không có block thì đi thẳng maxRange
-        Location dest = player.getEyeLocation().add(player.getEyeLocation().getDirection().multiply(maxRange));
-        dest.setYaw(player.getLocation().getYaw());
-        dest.setPitch(player.getLocation().getPitch());
-        return dest;
-    }
-
-    public void cleanup(UUID uuid) {
-        comboCount.remove(uuid);
-        lastHitTime.remove(uuid);
-        veilActiveUntil.remove(uuid);
-        backstabWindowUntil.remove(uuid);
-        breathActive.remove(uuid);
+        return target.getBlock().getLocation().add(0.5, 0, 0.5);
     }
 }
