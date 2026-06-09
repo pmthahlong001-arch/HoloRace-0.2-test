@@ -131,26 +131,36 @@ public class RaceManager {
         }
     }
 
+    // ĐÃ FIX: Hàm xử lý Map tránh triệt để lỗi Wildcard Capture
     public void applyEffectList(Player player, List<java.util.Map<?, ?>> effects) {
         if (effects == null) return;
-        for (java.util.Map<?, ?> eff : effects) {
-            if (eff == null) continue;
-            String effectName = eff.getOrDefault("effect", "").toString();
-            int amplifier = 0;
-            int duration = -1;
-            
-            try {
-                amplifier = Integer.parseInt(eff.getOrDefault("amplifier", "0").toString());
-                duration = Integer.parseInt(eff.getOrDefault("duration", "-1").toString());
-            } catch (NumberFormatException ignored) {}
+        for (Object obj : effects) {
+            if (obj instanceof Map<?, ?> map) {
+                Object rawEffect = map.get("effect");
+                Object rawAmplifier = map.get("amplifier");
+                Object rawDuration = map.get("duration");
 
-            PotionEffectType type = PotionEffectType.getByName(effectName);
-            if (type == null) continue;
+                String effectName = rawEffect != null ? rawEffect.toString() : "";
+                int amplifier = 0;
+                int duration = -1;
+                
+                try {
+                    if (rawAmplifier != null) {
+                        amplifier = Integer.parseInt(rawAmplifier.toString());
+                    }
+                    if (rawDuration != null) {
+                        duration = Integer.parseInt(rawDuration.toString());
+                    }
+                } catch (NumberFormatException ignored) {}
 
-            if (duration == -1) {
-                player.addPotionEffect(new PotionEffect(type, PotionEffect.INFINITE_DURATION, amplifier, true, false, false));
-            } else {
-                player.addPotionEffect(new PotionEffect(type, duration, amplifier, true, false, false));
+                PotionEffectType type = PotionEffectType.getByName(effectName);
+                if (type == null) continue;
+
+                if (duration == -1) {
+                    player.addPotionEffect(new PotionEffect(type, PotionEffect.INFINITE_DURATION, amplifier, true, false, false));
+                } else {
+                    player.addPotionEffect(new PotionEffect(type, duration, amplifier, true, false, false));
+                }
             }
         }
     }
