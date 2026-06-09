@@ -3,7 +3,6 @@ package online.racesmp.holorace.listeners;
 import online.racesmp.holorace.HoloRace;
 import online.racesmp.holorace.models.PlayerData;
 import online.racesmp.holorace.models.Race;
-import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -97,14 +96,18 @@ public class RaceSkillListener implements Listener {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("PASSIVE") || !skill.getTrigger().equals(trigger)) continue;
             for (var eff : skill.getEffectList()) {
-                String effectName = eff.getOrDefault("effect", "").toString().toLowerCase();
                 
-                // Cách giải quyết triệt để: Lọc trực tiếp từ các hiệu ứng đang có trên người player
-                // Cách này tránh việc phải truyền trực tiếp Object PotionEffectType lỗi generic compile
-                player.getActivePotionEffects().stream()
-                        .filter(potion -> potion.getType().getName().equalsIgnoreCase(effectName))
-                        .findFirst()
-                        .ifPresent(potion -> player.removePotionEffect(potion.getType()));
+                // --- THỦ PHẠM CHÍNH NẰM Ở ĐÂY ĐÃ ĐƯỢC XỬ LÝ ---
+                // Dùng .get("effect") thay vì .getOrDefault để tránh lỗi Generic wildcard <?>
+                Object effectObj = eff.get("effect");
+                if (effectObj == null) continue;
+                
+                String effectName = effectObj.toString().toUpperCase();
+                PotionEffectType potionType = PotionEffectType.getByName(effectName);
+                
+                if (potionType != null) {
+                    player.removePotionEffect(potionType);
+                }
             }
         }
     }
