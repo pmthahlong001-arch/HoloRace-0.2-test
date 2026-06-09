@@ -3,6 +3,7 @@ package online.racesmp.holorace.listeners;
 import online.racesmp.holorace.HoloRace;
 import online.racesmp.holorace.models.PlayerData;
 import online.racesmp.holorace.models.Race;
+import org.bukkit.NamespacedKey;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
 import org.bukkit.event.Listener;
@@ -96,13 +97,14 @@ public class RaceSkillListener implements Listener {
         for (Race.SkillConfig skill : race.getSkills()) {
             if (!skill.getType().equals("PASSIVE") || !skill.getTrigger().equals(trigger)) continue;
             for (var eff : skill.getEffectList()) {
-                String effectName = eff.getOrDefault("effect", "").toString();
-                PotionEffectType type = PotionEffectType.getByName(effectName);
+                String effectName = eff.getOrDefault("effect", "").toString().toLowerCase();
                 
-                // Giải pháp: Kiểm tra hiệu ứng có tồn tại trên người chơi không rồi xoá trực tiếp theo Type
-                if (type != null && player.hasPotionEffect(type)) {
-                    player.removePotionEffect(type);
-                }
+                // Cách giải quyết triệt để: Lọc trực tiếp từ các hiệu ứng đang có trên người player
+                // Cách này tránh việc phải truyền trực tiếp Object PotionEffectType lỗi generic compile
+                player.getActivePotionEffects().stream()
+                        .filter(potion -> potion.getType().getName().equalsIgnoreCase(effectName))
+                        .findFirst()
+                        .ifPresent(potion -> player.removePotionEffect(potion.getType()));
             }
         }
     }
